@@ -174,7 +174,7 @@ export function YieldTable({ data, isLoading, error }: Props) {
 
                   {cols.liquidity && (
                     <td className="px-4 py-2 text-right tabular-nums" style={{ color: "var(--muted-foreground)" }}>
-                      {rate.protocol === "metamorpho" ? "—" : fmt(liquidityUsd)}
+                      {fmt(liquidityUsd)}
                     </td>
                   )}
 
