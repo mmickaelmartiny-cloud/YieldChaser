@@ -1,5 +1,6 @@
 import { YieldTable } from "@/components/YieldTable";
 import { RateChart } from "@/components/RateChart";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
               Stablecoin lending yields across DeFi protocols
             </p>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
