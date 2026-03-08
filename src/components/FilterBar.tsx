@@ -3,7 +3,7 @@
 import { CHAIN_CONFIG } from "@/lib/chains";
 import type { Protocol, Stablecoin } from "@/types";
 
-const PROTOCOLS: Protocol[] = ["aave", "morpho", "euler", "compound"];
+const PROTOCOLS: Protocol[] = ["aave", "morpho", "euler", "compound", "metamorpho"];
 const CHAIN_IDS = [1, 8453, 42161, 10];
 const ASSETS: Stablecoin[] = ["USDC", "USDT", "DAI", "USDS"];
 
@@ -25,6 +25,14 @@ interface Props {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
 }
+
+const PROTOCOL_LABELS: Record<Protocol, string> = {
+  aave: "AAVE",
+  morpho: "Morpho",
+  euler: "Euler",
+  compound: "Compound",
+  metamorpho: "Vaults",
+};
 
 const PROTOCOL_COLORS: Record<Protocol, string> = {
   aave: "#C46AAE",
@@ -90,7 +98,7 @@ export function FilterBar({ filters, onChange }: Props) {
           {PROTOCOLS.map((p) => (
             <Chip
               key={p}
-              label={p}
+              label={PROTOCOL_LABELS[p]}
               active={filters.protocols.has(p)}
               color={PROTOCOL_COLORS[p]}
               onClick={() => onChange({ ...filters, protocols: toggle(filters.protocols, p) })}

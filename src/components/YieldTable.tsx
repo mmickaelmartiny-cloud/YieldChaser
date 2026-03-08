@@ -24,6 +24,15 @@ const PROTOCOL_COLORS: Record<string, string> = {
   morpho: "#4D8AFF",
   euler: "#E8743A",
   compound: "#00D395",
+  metamorpho: "#4D8AFF",
+};
+
+const PROTOCOL_LABELS: Record<string, string> = {
+  aave: "aave",
+  morpho: "morpho",
+  euler: "euler",
+  compound: "compound",
+  metamorpho: "vault",
 };
 
 function ColToggle({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -124,7 +133,7 @@ export function YieldTable({ data, isLoading, error }: Props) {
                   style={{ borderBottom: i < sorted.length - 1 ? "1px solid var(--border)" : "none" }}
                 >
                   <td className="px-4 py-2 font-medium uppercase tracking-wider" style={{ color: protocolColor }}>
-                    {rate.protocol}
+                    {PROTOCOL_LABELS[rate.protocol] ?? rate.protocol}
                   </td>
 
                   <td className="px-4 py-2" style={{ color: chain?.color ?? "var(--muted-foreground)" }}>
@@ -153,7 +162,7 @@ export function YieldTable({ data, isLoading, error }: Props) {
 
                   {cols.borrowApy && (
                     <td className="px-4 py-2 text-right" style={{ color: "var(--borrow-color)" }}>
-                      {rate.borrowApy.toFixed(2)}%
+                      {rate.protocol === "metamorpho" ? "—" : `${rate.borrowApy.toFixed(2)}%`}
                     </td>
                   )}
 
@@ -171,7 +180,7 @@ export function YieldTable({ data, isLoading, error }: Props) {
 
                   {cols.utilization && (
                     <td className="px-4 py-2 text-right tabular-nums" style={{ color: "var(--muted-foreground)" }}>
-                      {(rate.utilizationRate * 100).toFixed(1)}%
+                      {rate.protocol === "metamorpho" ? "—" : `${(rate.utilizationRate * 100).toFixed(1)}%`}
                     </td>
                   )}
                 </tr>
