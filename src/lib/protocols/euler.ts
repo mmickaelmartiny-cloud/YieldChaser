@@ -51,16 +51,22 @@ function rayRateToApy(ratePerSecond: bigint): number {
   return (Math.pow(1 + r, SECONDS_PER_YEAR) - 1) * 100;
 }
 
-// Euler v2 EVault addresses per chain.
-// Vault addresses can be verified at https://app.euler.finance or via the EVaultFactory logs.
-// EVaultFactory on mainnet: 0x29a56a1b8214D9Cf7c5561811750D5cBDb45CC8e
+// Euler v2 EVault addresses — enumerated via EVaultFactory.getProxyListSlice()
+// Factory on mainnet: 0x29a56a1b8214D9Cf7c5561811750D5cBDb45CC8e (GenericFactory ABI)
+// Only vaults with >$100k TVL are listed; sorted by TVL descending.
 const VAULTS: Partial<Record<number, { asset: Stablecoin; address: `0x${string}`; decimals: number; label: string }[]>> = {
   [mainnet.id]: [
-    // Top vaults by TVL — verified via EVaultFactory (0x29a56a1b8214D9Cf7c5561811750D5cBDb45CC8e) enumeration
-    { asset: "USDC", label: "eUSDC-80", address: "0xAB2726DAf820Aa9270D14Db9B18c8d187cbF2f30", decimals: 6 }, // ~$170M TVL
-    { asset: "USDC", label: "eUSDC-70", address: "0x9bD52F2805c6aF014132874124686e7b248c2Cbb", decimals: 6 }, // ~$107M TVL
-    { asset: "USDC", label: "eUSDC-64", address: "0x01864aE3c7d5f507cC4c24cA67B4CABbDdA37EcD", decimals: 6 }, // ~$14M TVL
-    { asset: "USDT", label: "eUSDT-2",  address: "0x313603FA690301b0CaeEf8069c065862f9162162", decimals: 6 }, // ~$986k TVL
+    { asset: "USDC", label: "eUSDC-80", address: "0xAB2726DAf820Aa9270D14Db9B18c8d187cbF2f30", decimals: 6 }, // $170M
+    { asset: "USDC", label: "eUSDC-70", address: "0x9bD52F2805c6aF014132874124686e7b248c2Cbb", decimals: 6 }, // $108M
+    { asset: "USDC", label: "eUSDC-64", address: "0x01864aE3c7d5f507cC4c24cA67B4CABbDdA37EcD", decimals: 6 }, // $14M
+    { asset: "USDC", label: "eUSDC-47", address: "0x481D4909D7ca2eb27c4975f08dCE07DBeF0d3Fa7", decimals: 6 }, // $3.2M
+    { asset: "USDC", label: "eUSDC-22", address: "0xe0a80d35bB6618CBA260120b279d357978c42BCE", decimals: 6 }, // $2.7M
+    { asset: "USDC", label: "eUSDC-2",  address: "0x797DD80692c3b2dAdabCe8e30C07fDE5307D48a9", decimals: 6 }, // $2.3M
+    { asset: "USDC", label: "eUSDC-95", address: "0x7fAb04FF2717d9A6B71A51c56c29697179597D40", decimals: 6 }, // $1.4M
+    { asset: "USDC", label: "eUSDC-58", address: "0xC42d337861878baa4dC820D9E6B6C667C2b57e8A", decimals: 6 }, // $1.3M
+    { asset: "USDC", label: "eUSDC-98", address: "0x63bA834bFf27Dd1d80533a56cA27Aa058AAA1130", decimals: 6 }, // $1.1M
+    { asset: "USDT", label: "eUSDT-2",  address: "0x313603FA690301b0CaeEf8069c065862f9162162", decimals: 6 }, // $986k
+    { asset: "USDT", label: "eUSDT-9",  address: "0x7c280DBDEf569e96c7919251bD2B0edF0734C5A8", decimals: 6 }, // $410k
   ],
 };
 
@@ -76,9 +82,6 @@ export const eulerAdapter: ProtocolAdapter = {
 
     const client = getClient(chainId);
     const results: YieldRate[] = [];
-
-    // Track best supply APY per asset across vaults
-    const byAsset = new Map<Stablecoin, { label: string; supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
 
     for (const vault of vaults) {
       if (!assets.includes(vault.asset)) continue;
@@ -108,17 +111,21 @@ export const eulerAdapter: ProtocolAdapter = {
         const totalSupplyUsd = Number(totalAssets) / scale;
         const totalBorrowUsd = Number(totalBorrows) / scale;
 
-        const existing = byAsset.get(vault.asset);
-        if (!existing || supplyApy > existing.supplyApy) {
-          byAsset.set(vault.asset, { label: vault.label, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
-        }
+        results.push({
+          protocol: "euler",
+          chainId,
+          asset: vault.asset,
+          label: vault.label,
+          supplyApy,
+          borrowApy,
+          totalSupplyUsd,
+          totalBorrowUsd,
+          utilizationRate,
+          updatedAt: new Date(),
+        });
       } catch {
-        // Skip vaults that fail (wrong address — check TODO comments above)
+        // Skip vaults that fail
       }
-    }
-
-    for (const [asset, data] of byAsset) {
-      results.push({ protocol: "euler", chainId, asset, updatedAt: new Date(), ...data, label: data.label });
     }
 
     return results;
