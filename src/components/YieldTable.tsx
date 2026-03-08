@@ -32,7 +32,7 @@ const PROTOCOL_LABELS: Record<string, string> = {
   morpho: "morpho",
   euler: "euler",
   compound: "compound",
-  metamorpho: "vault",
+  metamorpho: "morpho",
 };
 
 function ColToggle({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
