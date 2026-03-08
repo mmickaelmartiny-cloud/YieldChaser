@@ -11,10 +11,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { useYieldRates } from "@/hooks/useYieldRates";
 import { useRateHistory } from "@/hooks/useRateHistory";
 import { CHAIN_CONFIG } from "@/lib/chains";
-import type { Stablecoin } from "@/types";
+import type { Stablecoin, YieldRate } from "@/types";
 
 const ASSETS: Stablecoin[] = ["USDC", "USDT", "DAI", "USDS"];
 
@@ -25,9 +24,12 @@ const PROTOCOL_COLORS: Record<string, string> = {
   compound: "#00D395",
 };
 
-export function RateChart() {
+interface Props {
+  rates: YieldRate[] | undefined;
+}
+
+export function RateChart({ rates }: Props) {
   const [asset, setAsset] = useState<Stablecoin>("USDC");
-  const { data: rates } = useYieldRates();
   const history = useRateHistory(rates);
 
   // Collect all unique protocol+chain keys that appear in history for this asset

@@ -1,18 +1,15 @@
 "use client";
 
-import { useYieldRates } from "@/hooks/useYieldRates";
 import { CHAIN_CONFIG } from "@/lib/chains";
-import type { Protocol, Stablecoin } from "@/types";
+import type { YieldRate } from "@/types";
 
 interface Props {
-  protocols?: Protocol[];
-  chainIds?: number[];
-  assets?: Stablecoin[];
+  data: YieldRate[] | undefined;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
-export function YieldTable({ protocols, chainIds, assets }: Props) {
-  const { data, isLoading, error } = useYieldRates({ protocols, chainIds, assets });
-
+export function YieldTable({ data, isLoading, error }: Props) {
   if (isLoading) return <div className="text-sm text-muted-foreground">Loading rates...</div>;
   if (error) return <div className="text-sm text-destructive">Failed to load rates.</div>;
   if (!data?.length) return <div className="text-sm text-muted-foreground">No rates available.</div>;
