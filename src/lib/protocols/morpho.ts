@@ -91,13 +91,14 @@ function wadRateToApy(ratePerSecond: bigint): number {
 // Well-known Morpho Blue markets for stablecoins.
 // Each entry maps to a specific market (loan token + collateral + oracle + irm + lltv).
 // Oracle addresses can be verified at https://app.morpho.org or via on-chain events.
-const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; params: MarketParams; label: string }[]>> = {
+const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; params: MarketParams; label: string; curator?: string }[]>> = {
   [mainnet.id]: [
     // USDC / wstETH — flagship market, allocated by steakUSDC vault
     {
       asset: "USDC",
       decimals: 6,
       label: "USDC/wstETH 86%",
+      curator: "Steakhouse",
       params: {
         loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",    // USDC
         collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
@@ -111,6 +112,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "USDC",
       decimals: 6,
       label: "USDC/wBTC 86%",
+      curator: "Gauntlet",
       params: {
         loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",    // USDC
         collateralToken: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", // wBTC
@@ -124,6 +126,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "USDT",
       decimals: 6,
       label: "USDT/wstETH 86%",
+      curator: "Steakhouse",
       params: {
         loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",      // USDT
         collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
@@ -137,6 +140,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "DAI",
       decimals: 18,
       label: "DAI/sUSDe 86%",
+      curator: "SparkDAO",
       params: {
         loanToken: "0x6B175474E89094C44Da98b954EedeAC495271d0F",      // DAI
         collateralToken: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497", // sUSDe
@@ -150,6 +154,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "USDS",
       decimals: 18,
       label: "USDS/stUSDS 86%",
+      curator: "SparkDAO",
       params: {
         loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
         collateralToken: "0x99CD4Ec3f88A45940936F469E4bB72A2A701EEB9", // stUSDS
@@ -163,6 +168,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "USDS",
       decimals: 18,
       label: "USDS/wstETH 86%",
+      curator: "SparkDAO",
       params: {
         loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
         collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
@@ -176,6 +182,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "USDS",
       decimals: 18,
       label: "USDS/cbBTC 86%",
+      curator: "SparkDAO",
       params: {
         loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
         collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", // cbBTC
@@ -191,6 +198,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
       asset: "USDC",
       decimals: 6,
       label: "USDC/cbETH 86%",
+      curator: "Gauntlet",
       params: {
         loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",    // USDC (Base)
         collateralToken: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22", // cbETH
@@ -217,9 +225,9 @@ export const morphoAdapter: ProtocolAdapter = {
     const results: YieldRate[] = [];
 
     // Group markets by asset, then pick the best supply APY per asset
-    const byAsset = new Map<Stablecoin, { label: string; supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
+    const byAsset = new Map<Stablecoin, { label: string; curator?: string; supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
 
-    for (const { asset, decimals, label, params } of markets) {
+    for (const { asset, decimals, label, curator, params } of markets) {
       if (!assets.includes(asset)) continue;
 
       try {
@@ -258,7 +266,7 @@ export const morphoAdapter: ProtocolAdapter = {
 
         const existing = byAsset.get(asset);
         if (!existing || supplyApy > existing.supplyApy) {
-          byAsset.set(asset, { label, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
+          byAsset.set(asset, { label, curator, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
         }
       } catch {
         // Skip markets that fail (e.g. wrong oracle address — check TODO comments above)
@@ -266,7 +274,7 @@ export const morphoAdapter: ProtocolAdapter = {
     }
 
     for (const [asset, data] of byAsset) {
-      results.push({ protocol: "morpho", chainId, asset, updatedAt: new Date(), ...data, label: data.label });
+      results.push({ protocol: "morpho", chainId, asset, updatedAt: new Date(), ...data });
     }
 
     return results;
