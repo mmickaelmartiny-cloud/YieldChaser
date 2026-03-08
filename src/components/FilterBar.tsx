@@ -31,7 +31,7 @@ const PROTOCOL_LABELS: Record<Protocol, string> = {
   morpho: "Morpho",
   euler: "Euler",
   compound: "Compound",
-  metamorpho: "Vaults",
+  metamorpho: "Morpho",
 };
 
 const PROTOCOL_COLORS: Record<Protocol, string> = {
