@@ -93,104 +93,23 @@ function wadRateToApy(ratePerSecond: bigint): number {
 // Oracle addresses can be verified at https://app.morpho.org or via on-chain events.
 const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; params: MarketParams; label: string; curator?: string }[]>> = {
   [mainnet.id]: [
-    // USDC / wstETH — flagship market, allocated by steakUSDC vault
-    {
-      asset: "USDC",
-      decimals: 6,
-      label: "USDC/wstETH 86%",
-      curator: "Steakhouse",
-      params: {
-        loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",    // USDC
-        collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
-        oracle: "0x48F7E36EB6B826B2dF4B2E630B62Cd25e89E40e2",          // Morpho ChainLink wstETH/USDC
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
-    // USDC / wBTC — high-liquidity market
-    {
-      asset: "USDC",
-      decimals: 6,
-      label: "USDC/wBTC 86%",
-      curator: "Gauntlet",
-      params: {
-        loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",    // USDC
-        collateralToken: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", // wBTC
-        oracle: "0xDddd770BADd886dF3864029e4B377B5F6a2B6b83",          // Morpho ChainLink wBTC/USDC
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
-    // USDT / wstETH
-    {
-      asset: "USDT",
-      decimals: 6,
-      label: "USDT/wstETH 86%",
-      curator: "Steakhouse",
-      params: {
-        loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",      // USDT
-        collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
-        oracle: "0x95DB30fAb9A3754e42423000DF27732CB2396992",
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
-    // DAI / sUSDe — top DAI market by TVL; market ID verified via blue-api.morpho.org
-    {
-      asset: "DAI",
-      decimals: 18,
-      label: "DAI/sUSDe 86%",
-      curator: "SparkDAO",
-      params: {
-        loanToken: "0x6B175474E89094C44Da98b954EedeAC495271d0F",      // DAI
-        collateralToken: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497", // sUSDe
-        oracle: "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25",
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
-    // USDS / stUSDS — largest USDS market by TVL
-    {
-      asset: "USDS",
-      decimals: 18,
-      label: "USDS/stUSDS 86%",
-      curator: "SparkDAO",
-      params: {
-        loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
-        collateralToken: "0x99CD4Ec3f88A45940936F469E4bB72A2A701EEB9", // stUSDS
-        oracle: "0x0A976226d113B67Bd42D672Ac9f83f92B44b454C",
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
-    // USDS / wstETH
-    {
-      asset: "USDS",
-      decimals: 18,
-      label: "USDS/wstETH 86%",
-      curator: "SparkDAO",
-      params: {
-        loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
-        collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
-        oracle: "0xc9A9440d1545047b2Ce3624DB425410cF2EAE292",
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
-    // USDS / cbBTC
-    {
-      asset: "USDS",
-      decimals: 18,
-      label: "USDS/cbBTC 86%",
-      curator: "SparkDAO",
-      params: {
-        loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
-        collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", // cbBTC
-        oracle: "0xA5AEb90F9f122989fE69Ae6224Ed923A0caF33B4",
-        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
+    // ── USDC markets ─────────────────────────────────────────────────────────
+    { asset: "USDC", decimals: 6, label: "USDC/cbBTC 86%",   curator: "Gauntlet",   params: { loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0xA6D6950c9F177F1De7f7757FB33539e3Ec60182a", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $422M
+    { asset: "USDC", decimals: 6, label: "USDC/wBTC 86%",    curator: "Gauntlet",   params: { loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", collateralToken: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", oracle: "0xDddd770BADd886dF3864029e4B377B5F6a2B6b83", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $89M
+    { asset: "USDC", decimals: 6, label: "USDC/wstETH 86%",  curator: "Steakhouse", params: { loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", oracle: "0x48F7E36EB6B826B2dF4B2E630B62Cd25e89E40e2", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $77M
+    { asset: "USDC", decimals: 6, label: "USDC/stUSDS 86%",  curator: undefined,    params: { loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", collateralToken: "0x99CD4Ec3f88A45940936F469E4bB72A2A701EEB9", oracle: "0xba3D2Dc1670763c6729CC923A922C7513C0f9DD0", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $44M
+    // ── USDT markets ─────────────────────────────────────────────────────────
+    { asset: "USDT", decimals: 6, label: "USDT/sUSDS 96.5%", curator: "Steakhouse", params: { loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", collateralToken: "0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD", oracle: "0x0C426d174FC88B7A25d59945Ab2F7274Bf7B4C79", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 965000000000000000n } }, // $284M
+    { asset: "USDT", decimals: 6, label: "USDT/wstETH 86%",  curator: "Steakhouse", params: { loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", oracle: "0x95DB30fAb9A3754e42423000DF27732CB2396992", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $65M
+    { asset: "USDT", decimals: 6, label: "USDT/wBTC 86%",    curator: "Gauntlet",   params: { loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", collateralToken: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", oracle: "0x008bF4B1cDA0cc9f0e882E0697f036667652E1ef", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $62M
+    { asset: "USDT", decimals: 6, label: "USDT/stUSDS 86%",  curator: undefined,    params: { loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", collateralToken: "0x99CD4Ec3f88A45940936F469E4bB72A2A701EEB9", oracle: "0x9C56D403d26C0aE00FA2e767e12F6b588c203B3c", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $34M
+    { asset: "USDT", decimals: 6, label: "USDT/cbBTC 86%",   curator: "Gauntlet",   params: { loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0x0E053750DFA4E809E5f7b119832C799c2aA138ac", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $15M
+    // ── DAI markets ──────────────────────────────────────────────────────────
+    { asset: "DAI",  decimals: 18, label: "DAI/sUSDe 86%",   curator: "SparkDAO",   params: { loanToken: "0x6B175474E89094C44Da98b954EedeAC495271d0F", collateralToken: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497", oracle: "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $2.8M
+    // ── USDS markets ─────────────────────────────────────────────────────────
+    { asset: "USDS", decimals: 18, label: "USDS/stUSDS 86%", curator: "SparkDAO",   params: { loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F", collateralToken: "0x99CD4Ec3f88A45940936F469E4bB72A2A701EEB9", oracle: "0x0A976226d113B67Bd42D672Ac9f83f92B44b454C", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $7.6M
+    { asset: "USDS", decimals: 18, label: "USDS/wstETH 86%", curator: "SparkDAO",   params: { loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F", collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", oracle: "0xc9A9440d1545047b2Ce3624DB425410cF2EAE292", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $2.6M
+    { asset: "USDS", decimals: 18, label: "USDS/cbBTC 86%",  curator: "SparkDAO",   params: { loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0xA5AEb90F9f122989fE69Ae6224Ed923A0caF33B4", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $2.6M
   ],
   [base.id]: [
     // USDC / cbETH on Base
@@ -223,9 +142,6 @@ export const morphoAdapter: ProtocolAdapter = {
 
     const client = getClient(chainId);
     const results: YieldRate[] = [];
-
-    // Group markets by asset, then pick the best supply APY per asset
-    const byAsset = new Map<Stablecoin, { label: string; curator?: string; supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
 
     for (const { asset, decimals, label, curator, params } of markets) {
       if (!assets.includes(asset)) continue;
@@ -264,17 +180,10 @@ export const morphoAdapter: ProtocolAdapter = {
         const totalSupplyUsd = Number(totalSupplyAssets) / scale;
         const totalBorrowUsd = Number(totalBorrowAssets) / scale;
 
-        const existing = byAsset.get(asset);
-        if (!existing || supplyApy > existing.supplyApy) {
-          byAsset.set(asset, { label, curator, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
-        }
+        results.push({ protocol: "morpho", chainId, asset, label, curator, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate, updatedAt: new Date() });
       } catch {
-        // Skip markets that fail (e.g. wrong oracle address — check TODO comments above)
+        // Skip markets that fail
       }
-    }
-
-    for (const [asset, data] of byAsset) {
-      results.push({ protocol: "morpho", chainId, asset, updatedAt: new Date(), ...data });
     }
 
     return results;
