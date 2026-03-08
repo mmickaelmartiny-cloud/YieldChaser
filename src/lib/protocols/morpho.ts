@@ -112,20 +112,13 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
     { asset: "USDS", decimals: 18, label: "USDS/cbBTC 86%",  curator: "SparkDAO",   params: { loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0xA5AEb90F9f122989fE69Ae6224Ed923A0caF33B4", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $2.6M
   ],
   [base.id]: [
-    // USDC / cbETH on Base
-    {
-      asset: "USDC",
-      decimals: 6,
-      label: "USDC/cbETH 86%",
-      curator: "Gauntlet",
-      params: {
-        loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",    // USDC (Base)
-        collateralToken: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22", // cbETH
-        oracle: "0xb40d93F44411D8C09aD17d7F88195eF9b05cCD96",
-        irm: "0x46415998764C29aB2a25CbeA6254146D50D22687",
-        lltv: 860000000000000000n, // 86%
-      },
-    },
+    // ── USDC markets ─────────────────────────────────────────────────────────
+    { asset: "USDC", decimals: 6, label: "USDC/cbBTC 86%",  curator: "Gauntlet", params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0x663BECd10daE6C4A3Dcd89F1d76c1174199639B9", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 860000000000000000n } }, // $1.1B
+    { asset: "USDC", decimals: 6, label: "USDC/WETH 86%",   curator: "Gauntlet", params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0x4200000000000000000000000000000000000006", oracle: "0xFEa2D58cEfCb9fcb597723c6bAE66fFE4193aFE4", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 860000000000000000n } }, // $55M
+    { asset: "USDC", decimals: 6, label: "USDC/cbXRP 62.5%", curator: undefined, params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0xcb585250f852C6c6bf90434AB21A00f02833a4af", oracle: "0x031b2EFC8d70042Ac8d9f5c793c4149eC4b60fdE", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 625000000000000000n } }, // $9.8M
+    { asset: "USDC", decimals: 6, label: "USDC/cbETH 86%",  curator: "Gauntlet", params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22", oracle: "0xb40d93F44411D8C09aD17d7F88195eF9b05cCD96", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 860000000000000000n } }, // $1.8M
+    { asset: "USDC", decimals: 6, label: "USDC/cbETH 77%",  curator: undefined,  params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22", oracle: "0x97FF9CbD7E77348b2B8FfBB883bF29452aD18295", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 770000000000000000n } }, // $1.2M
+    { asset: "USDC", decimals: 6, label: "USDC/wstETH 86%", curator: undefined,  params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452", oracle: "0xD7A1abA119a236Fea5BBC5cAC6836465cbe9289A", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 860000000000000000n } }, // $1.1M
   ],
 };
 
