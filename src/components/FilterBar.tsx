@@ -31,6 +31,7 @@ const PROTOCOL_COLORS: Record<Protocol, string> = {
   morpho: "#4D8AFF",
   euler: "#E8743A",
   compound: "#00D395",
+  metamorpho: "#4D8AFF",
 };
 
 function Chip({

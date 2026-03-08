@@ -1,6 +1,6 @@
 export type Stablecoin = "USDC" | "USDT" | "DAI" | "USDS";
 
-export type Protocol = "aave" | "morpho" | "euler" | "compound";
+export type Protocol = "aave" | "morpho" | "euler" | "compound" | "metamorpho";
 
 export interface YieldRate {
   protocol: Protocol;
