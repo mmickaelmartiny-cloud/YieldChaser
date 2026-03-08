@@ -56,8 +56,9 @@ function wadRateToApy(ratePerSecond: bigint): number {
 // ARB cUSDCv3 uses USDC.e (bridged USDC, 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8) not native USDC.
 const COMETS: Partial<Record<number, { asset: Stablecoin; address: `0x${string}`; decimals: number; label: string }[]>> = {
   [mainnet.id]: [
-    { asset: "USDC", label: "cUSDCv3", address: "0xc3d688B66703497DAA19211EEdff47f25384cdc3", decimals: 6 }, // ~$393M TVL
-    { asset: "USDT", label: "cUSDTv3", address: "0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840", decimals: 6 }, // ~$198M TVL
+    { asset: "USDC", label: "cUSDCv3", address: "0xc3d688B66703497DAA19211EEdff47f25384cdc3", decimals: 6 },  // ~$393M TVL
+    { asset: "USDT", label: "cUSDTv3", address: "0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840", decimals: 6 },  // ~$198M TVL
+    { asset: "USDS", label: "cUSDSv3", address: "0x5D409e56D886231aDAf00c8775665AD0f9897b56", decimals: 18 }, // USDS (Sky) comet
   ],
   [base.id]: [
     // Address has a non-EIP55 checksum in some sources — using lowercase hex is safe for RPC calls
@@ -76,7 +77,7 @@ const COMETS: Partial<Record<number, { asset: Stablecoin; address: `0x${string}`
 export const compoundAdapter: ProtocolAdapter = {
   protocol: "compound" as Protocol,
   supportedChains: [mainnet.id, base.id, arbitrum.id, optimism.id],
-  supportedAssets: ["USDC", "USDT"],
+  supportedAssets: ["USDC", "USDT", "USDS"],
 
   async fetchRates(chainId: number, assets: Stablecoin[]): Promise<YieldRate[]> {
     const { getClient } = await import("@/lib/rpc/clients");

@@ -91,11 +91,12 @@ function wadRateToApy(ratePerSecond: bigint): number {
 // Well-known Morpho Blue markets for stablecoins.
 // Each entry maps to a specific market (loan token + collateral + oracle + irm + lltv).
 // Oracle addresses can be verified at https://app.morpho.org or via on-chain events.
-const MARKETS: Partial<Record<number, { asset: Stablecoin; params: MarketParams; label: string }[]>> = {
+const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; params: MarketParams; label: string }[]>> = {
   [mainnet.id]: [
     // USDC / wstETH — flagship market, allocated by steakUSDC vault
     {
       asset: "USDC",
+      decimals: 6,
       label: "USDC/wstETH 86%",
       params: {
         loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",    // USDC
@@ -108,6 +109,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; params: MarketParams;
     // USDC / wBTC — high-liquidity market
     {
       asset: "USDC",
+      decimals: 6,
       label: "USDC/wBTC 86%",
       params: {
         loanToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",    // USDC
@@ -120,6 +122,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; params: MarketParams;
     // USDT / wstETH
     {
       asset: "USDT",
+      decimals: 6,
       label: "USDT/wstETH 86%",
       params: {
         loanToken: "0xdAC17F958D2ee523a2206206994597C13D831ec7",      // USDT
@@ -129,11 +132,64 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; params: MarketParams;
         lltv: 860000000000000000n, // 86%
       },
     },
+    // DAI / sUSDe — top DAI market by TVL; market ID verified via blue-api.morpho.org
+    {
+      asset: "DAI",
+      decimals: 18,
+      label: "DAI/sUSDe 86%",
+      params: {
+        loanToken: "0x6B175474E89094C44Da98b954EedeAC495271d0F",      // DAI
+        collateralToken: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497", // sUSDe
+        oracle: "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25",
+        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        lltv: 860000000000000000n, // 86%
+      },
+    },
+    // USDS / stUSDS — largest USDS market by TVL
+    {
+      asset: "USDS",
+      decimals: 18,
+      label: "USDS/stUSDS 86%",
+      params: {
+        loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
+        collateralToken: "0x99CD4Ec3f88A45940936F469E4bB72A2A701EEB9", // stUSDS
+        oracle: "0x0A976226d113B67Bd42D672Ac9f83f92B44b454C",
+        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        lltv: 860000000000000000n, // 86%
+      },
+    },
+    // USDS / wstETH
+    {
+      asset: "USDS",
+      decimals: 18,
+      label: "USDS/wstETH 86%",
+      params: {
+        loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
+        collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // wstETH
+        oracle: "0xc9A9440d1545047b2Ce3624DB425410cF2EAE292",
+        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        lltv: 860000000000000000n, // 86%
+      },
+    },
+    // USDS / cbBTC
+    {
+      asset: "USDS",
+      decimals: 18,
+      label: "USDS/cbBTC 86%",
+      params: {
+        loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F",      // USDS
+        collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", // cbBTC
+        oracle: "0xA5AEb90F9f122989fE69Ae6224Ed923A0caF33B4",
+        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        lltv: 860000000000000000n, // 86%
+      },
+    },
   ],
   [base.id]: [
     // USDC / cbETH on Base
     {
       asset: "USDC",
+      decimals: 6,
       label: "USDC/cbETH 86%",
       params: {
         loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",    // USDC (Base)
@@ -149,7 +205,7 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; params: MarketParams;
 export const morphoAdapter: ProtocolAdapter = {
   protocol: "morpho" as Protocol,
   supportedChains: [mainnet.id, base.id],
-  supportedAssets: ["USDC", "USDT"],
+  supportedAssets: ["USDC", "USDT", "DAI", "USDS"],
 
   async fetchRates(chainId: number, assets: Stablecoin[]): Promise<YieldRate[]> {
     const { getClient } = await import("@/lib/rpc/clients");
@@ -163,7 +219,7 @@ export const morphoAdapter: ProtocolAdapter = {
     // Group markets by asset, then pick the best supply APY per asset
     const byAsset = new Map<Stablecoin, { supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
 
-    for (const { asset, params } of markets) {
+    for (const { asset, decimals, params } of markets) {
       if (!assets.includes(asset)) continue;
 
       try {
@@ -196,9 +252,9 @@ export const morphoAdapter: ProtocolAdapter = {
         const supplyApy = wadRateToApy(supplyRatePerSecond);
         const borrowApy = wadRateToApy(borrowRatePerSecond);
 
-        // Stablecoins are 6 decimals (USDC, USDT)
-        const totalSupplyUsd = Number(totalSupplyAssets) / 1e6;
-        const totalBorrowUsd = Number(totalBorrowAssets) / 1e6;
+        const scale = Math.pow(10, decimals);
+        const totalSupplyUsd = Number(totalSupplyAssets) / scale;
+        const totalBorrowUsd = Number(totalBorrowAssets) / scale;
 
         const existing = byAsset.get(asset);
         if (!existing || supplyApy > existing.supplyApy) {
