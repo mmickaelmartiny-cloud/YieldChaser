@@ -1,0 +1,22 @@
+export type Stablecoin = "USDC" | "USDT" | "DAI" | "USDS";
+
+export type Protocol = "aave" | "morpho" | "euler" | "compound";
+
+export interface YieldRate {
+  protocol: Protocol;
+  chainId: number;
+  asset: Stablecoin;
+  supplyApy: number;      // annual percentage yield (e.g. 0.05 = 5%)
+  borrowApy: number;
+  totalSupplyUsd: number;
+  totalBorrowUsd: number;
+  utilizationRate: number;
+  updatedAt: Date;
+}
+
+export interface ProtocolAdapter {
+  protocol: Protocol;
+  supportedChains: number[];
+  supportedAssets: Stablecoin[];
+  fetchRates(chainId: number, assets: Stablecoin[]): Promise<YieldRate[]>;
+}
