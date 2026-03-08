@@ -217,9 +217,9 @@ export const morphoAdapter: ProtocolAdapter = {
     const results: YieldRate[] = [];
 
     // Group markets by asset, then pick the best supply APY per asset
-    const byAsset = new Map<Stablecoin, { supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
+    const byAsset = new Map<Stablecoin, { label: string; supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
 
-    for (const { asset, decimals, params } of markets) {
+    for (const { asset, decimals, label, params } of markets) {
       if (!assets.includes(asset)) continue;
 
       try {
@@ -258,7 +258,7 @@ export const morphoAdapter: ProtocolAdapter = {
 
         const existing = byAsset.get(asset);
         if (!existing || supplyApy > existing.supplyApy) {
-          byAsset.set(asset, { supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
+          byAsset.set(asset, { label, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
         }
       } catch {
         // Skip markets that fail (e.g. wrong oracle address — check TODO comments above)
@@ -266,7 +266,7 @@ export const morphoAdapter: ProtocolAdapter = {
     }
 
     for (const [asset, data] of byAsset) {
-      results.push({ protocol: "morpho", chainId, asset, updatedAt: new Date(), ...data });
+      results.push({ protocol: "morpho", chainId, asset, updatedAt: new Date(), ...data, label: data.label });
     }
 
     return results;

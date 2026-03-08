@@ -78,7 +78,7 @@ export const eulerAdapter: ProtocolAdapter = {
     const results: YieldRate[] = [];
 
     // Track best supply APY per asset across vaults
-    const byAsset = new Map<Stablecoin, { supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
+    const byAsset = new Map<Stablecoin, { label: string; supplyApy: number; borrowApy: number; totalSupplyUsd: number; totalBorrowUsd: number; utilizationRate: number }>();
 
     for (const vault of vaults) {
       if (!assets.includes(vault.asset)) continue;
@@ -110,7 +110,7 @@ export const eulerAdapter: ProtocolAdapter = {
 
         const existing = byAsset.get(vault.asset);
         if (!existing || supplyApy > existing.supplyApy) {
-          byAsset.set(vault.asset, { supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
+          byAsset.set(vault.asset, { label: vault.label, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate });
         }
       } catch {
         // Skip vaults that fail (wrong address — check TODO comments above)
@@ -118,7 +118,7 @@ export const eulerAdapter: ProtocolAdapter = {
     }
 
     for (const [asset, data] of byAsset) {
-      results.push({ protocol: "euler", chainId, asset, updatedAt: new Date(), ...data });
+      results.push({ protocol: "euler", chainId, asset, updatedAt: new Date(), ...data, label: data.label });
     }
 
     return results;

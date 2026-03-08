@@ -114,6 +114,7 @@ export const compoundAdapter: ProtocolAdapter = {
           protocol: "compound",
           chainId,
           asset: comet.asset,
+          label: comet.label,
           supplyApy,
           borrowApy,
           totalSupplyUsd,

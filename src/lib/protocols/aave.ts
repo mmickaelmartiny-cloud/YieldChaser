@@ -109,6 +109,7 @@ export const aaveAdapter: ProtocolAdapter = {
           protocol: "aave",
           chainId,
           asset,
+          label: `a${asset}`,
           supplyApy: rayToApy(liquidityRate),
           borrowApy: rayToApy(variableBorrowRate),
           totalSupplyUsd,
