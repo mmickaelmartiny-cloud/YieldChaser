@@ -3,7 +3,7 @@
 import { CHAIN_CONFIG } from "@/lib/chains";
 import type { Protocol, Stablecoin } from "@/types";
 
-const PROTOCOLS: Protocol[] = ["aave", "morpho", "euler", "compound", "metamorpho"];
+const PROTOCOLS: Protocol[] = ["aave", "euler", "compound", "metamorpho"];
 const CHAIN_IDS = [1, 8453, 42161, 10];
 const ASSETS: Stablecoin[] = ["USDC", "USDT", "DAI", "USDS"];
 

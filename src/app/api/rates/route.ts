@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { protocolAdapters } from "@/lib/protocols";
 import type { Protocol, Stablecoin } from "@/types";
 
-const DEFAULT_PROTOCOLS: Protocol[] = ["aave", "morpho", "euler", "compound", "metamorpho"];
+const DEFAULT_PROTOCOLS: Protocol[] = ["aave", "euler", "compound", "metamorpho"];
 const DEFAULT_ASSETS: Stablecoin[] = ["USDC", "USDT", "DAI", "USDS"];
 
 export async function GET(req: NextRequest) {
