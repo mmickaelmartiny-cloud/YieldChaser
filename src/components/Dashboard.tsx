@@ -22,18 +22,29 @@ export function Dashboard() {
   }, [data, filters]);
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Best Rates</h2>
-          <span className="text-xs text-muted-foreground">Auto-refreshes every 60s</span>
+    <div className="space-y-8">
+      {/* Rates section */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-4">
+          <span
+            className="text-xs uppercase tracking-widest"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            ── BEST RATES
+          </span>
         </div>
         <FilterBar filters={filters} onChange={setFilters} />
         <YieldTable data={filtered} isLoading={isLoading} error={error} />
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">APY History</h2>
+      {/* Chart section */}
+      <section className="space-y-3">
+        <span
+          className="text-xs uppercase tracking-widest"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          ── APY HISTORY
+        </span>
         <RateChart rates={data} />
       </section>
     </div>

@@ -18,9 +18,9 @@ import type { Stablecoin, YieldRate } from "@/types";
 const ASSETS: Stablecoin[] = ["USDC", "USDT", "DAI", "USDS"];
 
 const PROTOCOL_COLORS: Record<string, string> = {
-  aave: "#B6509E",
-  morpho: "#2470FF",
-  euler: "#E0621A",
+  aave: "#C46AAE",
+  morpho: "#4D8AFF",
+  euler: "#E8743A",
   compound: "#00D395",
 };
 
@@ -32,7 +32,6 @@ export function RateChart({ rates }: Props) {
   const [asset, setAsset] = useState<Stablecoin>("USDC");
   const history = useRateHistory(rates);
 
-  // Collect all unique protocol+chain keys that appear in history for this asset
   const keys = new Set<string>();
   for (const entry of history) {
     for (const r of entry.rates) {
@@ -40,7 +39,6 @@ export function RateChart({ rates }: Props) {
     }
   }
 
-  // Build Recharts data: one object per snapshot
   const chartData = history.map((entry) => {
     const point: Record<string, number | string> = {
       time: new Date(entry.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -52,18 +50,15 @@ export function RateChart({ rates }: Props) {
   });
 
   return (
-    <div>
+    <div className="space-y-3">
       {/* Asset selector */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2">
         {ASSETS.map((a) => (
           <button
             key={a}
             onClick={() => setAsset(a)}
-            className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-              asset === a
-                ? "bg-foreground text-background border-foreground"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
+            className={`col-toggle ${asset === a ? "active" : ""}`}
+            style={{ borderRadius: "var(--radius)" }}
           >
             {a}
           </button>
@@ -71,49 +66,80 @@ export function RateChart({ rates }: Props) {
       </div>
 
       {chartData.length < 2 ? (
-        <div className="flex items-center justify-center h-52 text-sm text-muted-foreground border rounded-lg">
-          Collecting data — chart will appear after a few refreshes (every 60s)
+        <div
+          className="flex items-center justify-center h-44 text-xs uppercase tracking-widest"
+          style={{
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius)",
+            color: "var(--muted-foreground)",
+          }}
+        >
+          ⟳ collecting data — chart appears after a few refreshes
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData} margin={{ top: 5, right: 24, bottom: 5, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" className="opacity-10" stroke="currentColor" />
-            <XAxis dataKey="time" tick={{ fontSize: 11 }} />
-            <YAxis
-              tickFormatter={(v: number) => `${v.toFixed(1)}%`}
-              tick={{ fontSize: 11 }}
-              width={48}
-            />
-            <Tooltip
-              formatter={(v, key) => {
-                const [protocol, chainId] = String(key).split("-");
-                const chain = CHAIN_CONFIG[Number(chainId)];
-                return [`${Number(v).toFixed(2)}%`, `${protocol} ${chain?.shortName ?? chainId}`];
-              }}
-              labelFormatter={(label) => `Time: ${label}`}
-            />
-            <Legend
-              formatter={(key: string) => {
-                const [protocol, chainId] = key.split("-");
-                const chain = CHAIN_CONFIG[Number(chainId)];
-                return `${protocol} ${chain?.shortName ?? chainId}`;
-              }}
-            />
-            {[...keys].map((key) => {
-              const [protocol] = key.split("-");
-              return (
-                <Line
-                  key={key}
-                  dataKey={key}
-                  stroke={PROTOCOL_COLORS[protocol] ?? "#888"}
-                  dot={false}
-                  strokeWidth={2}
-                  connectNulls
-                />
-              );
-            })}
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "12px 8px 4px 0" }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
+              <CartesianGrid
+                strokeDasharray="4 4"
+                stroke="rgba(150, 100, 30, 0.15)"
+                horizontal
+                vertical={false}
+              />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)", fontFamily: "var(--font-jetbrains)" }}
+                tickLine={false}
+                axisLine={{ stroke: "var(--border)" }}
+              />
+              <YAxis
+                tickFormatter={(v: number) => `${v.toFixed(1)}%`}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)", fontFamily: "var(--font-jetbrains)" }}
+                tickLine={false}
+                axisLine={false}
+                width={44}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius)",
+                  fontSize: "12px",
+                  fontFamily: "var(--font-jetbrains)",
+                  color: "var(--foreground)",
+                }}
+                labelStyle={{ color: "var(--muted-foreground)", marginBottom: 4 }}
+                formatter={(v, key) => {
+                  const [protocol, chainId] = String(key).split("-");
+                  const chain = CHAIN_CONFIG[Number(chainId)];
+                  return [`${Number(v).toFixed(2)}%`, `${protocol} ${chain?.shortName ?? chainId}`];
+                }}
+                labelFormatter={(label) => `⟳ ${label}`}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: "11px", fontFamily: "var(--font-jetbrains)", paddingTop: "8px" }}
+                formatter={(key: string) => {
+                  const [protocol, chainId] = key.split("-");
+                  const chain = CHAIN_CONFIG[Number(chainId)];
+                  return `${protocol} ${chain?.shortName ?? chainId}`;
+                }}
+              />
+              {[...keys].map((key) => {
+                const [protocol] = key.split("-");
+                return (
+                  <Line
+                    key={key}
+                    dataKey={key}
+                    stroke={PROTOCOL_COLORS[protocol] ?? "#888"}
+                    dot={false}
+                    strokeWidth={1.5}
+                    connectNulls
+                  />
+                );
+              })}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

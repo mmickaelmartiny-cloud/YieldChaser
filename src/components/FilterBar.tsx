@@ -26,6 +26,13 @@ interface Props {
   onChange: (filters: FilterState) => void;
 }
 
+const PROTOCOL_COLORS: Record<Protocol, string> = {
+  aave: "#C46AAE",
+  morpho: "#4D8AFF",
+  euler: "#E8743A",
+  compound: "#00D395",
+};
+
 function Chip({
   label,
   active,
@@ -40,22 +47,25 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
-        active
-          ? "text-white border-transparent"
-          : "bg-transparent border-border text-muted-foreground hover:text-foreground"
-      }`}
-      style={active && color ? { backgroundColor: color } : undefined}
+      className="filter-chip"
+      style={{
+        borderRadius: "var(--radius)",
+        ...(active && color
+          ? { backgroundColor: color, borderColor: color, color: "white" }
+          : active
+          ? { borderColor: "var(--primary)", color: "var(--amber-bright)" }
+          : {}),
+      }}
     >
+      {active ? "◆ " : "◇ "}
       {label}
     </button>
   );
 }
 
-function toggle<T>(set: Set<T>, value: T, all: T[]): Set<T> {
+function toggle<T>(set: Set<T>, value: T): Set<T> {
   const next = new Set(set);
   if (next.has(value)) {
-    // Don't deselect the last item
     if (next.size === 1) return set;
     next.delete(value);
   } else {
@@ -64,33 +74,38 @@ function toggle<T>(set: Set<T>, value: T, all: T[]): Set<T> {
   return next;
 }
 
-const PROTOCOL_COLORS: Record<Protocol, string> = {
-  aave: "#B6509E",
-  morpho: "#2470FF",
-  euler: "#E0621A",
-  compound: "#00D395",
-};
-
 export function FilterBar({ filters, onChange }: Props) {
   return (
-    <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm">
+    <div className="flex flex-wrap gap-x-8 gap-y-2">
+      {/* Protocol */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground text-xs font-medium w-16 shrink-0">Protocol</span>
+        <span
+          className="text-xs uppercase tracking-widest shrink-0 w-16"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          Protocol
+        </span>
         <div className="flex flex-wrap gap-1.5">
           {PROTOCOLS.map((p) => (
             <Chip
               key={p}
-              label={p.charAt(0).toUpperCase() + p.slice(1)}
+              label={p}
               active={filters.protocols.has(p)}
               color={PROTOCOL_COLORS[p]}
-              onClick={() => onChange({ ...filters, protocols: toggle(filters.protocols, p, PROTOCOLS) })}
+              onClick={() => onChange({ ...filters, protocols: toggle(filters.protocols, p) })}
             />
           ))}
         </div>
       </div>
 
+      {/* Chain */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground text-xs font-medium w-16 shrink-0">Chain</span>
+        <span
+          className="text-xs uppercase tracking-widest shrink-0 w-16"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          Chain
+        </span>
         <div className="flex flex-wrap gap-1.5">
           {CHAIN_IDS.map((id) => {
             const chain = CHAIN_CONFIG[id];
@@ -100,22 +115,28 @@ export function FilterBar({ filters, onChange }: Props) {
                 label={chain?.shortName ?? String(id)}
                 active={filters.chains.has(id)}
                 color={chain?.color}
-                onClick={() => onChange({ ...filters, chains: toggle(filters.chains, id, CHAIN_IDS) })}
+                onClick={() => onChange({ ...filters, chains: toggle(filters.chains, id) })}
               />
             );
           })}
         </div>
       </div>
 
+      {/* Asset */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground text-xs font-medium w-16 shrink-0">Asset</span>
+        <span
+          className="text-xs uppercase tracking-widest shrink-0 w-16"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          Asset
+        </span>
         <div className="flex flex-wrap gap-1.5">
           {ASSETS.map((a) => (
             <Chip
               key={a}
               label={a}
               active={filters.assets.has(a)}
-              onClick={() => onChange({ ...filters, assets: toggle(filters.assets, a, ASSETS) })}
+              onClick={() => onChange({ ...filters, assets: toggle(filters.assets, a) })}
             />
           ))}
         </div>

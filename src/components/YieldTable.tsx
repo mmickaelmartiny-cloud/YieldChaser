@@ -19,19 +19,26 @@ interface Props {
   error?: Error | null;
 }
 
+const PROTOCOL_COLORS: Record<string, string> = {
+  aave: "#C46AAE",
+  morpho: "#4D8AFF",
+  euler: "#E8743A",
+  compound: "#00D395",
+};
+
 function ColToggle({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
-        active
-          ? "bg-foreground text-background border-foreground"
-          : "border-border text-muted-foreground hover:text-foreground"
-      }`}
-    >
-      {label}
+    <button onClick={onClick} className={`col-toggle ${active ? "active" : ""}`} style={{ borderRadius: "var(--radius)" }}>
+      {active ? "◆" : "◇"} {label}
     </button>
   );
+}
+
+function fmt(usd: number) {
+  if (usd >= 1e9) return `$${(usd / 1e9).toFixed(2)}B`;
+  if (usd >= 1e6) return `$${(usd / 1e6).toFixed(1)}M`;
+  if (usd >= 1e3) return `$${(usd / 1e3).toFixed(0)}K`;
+  return `$${usd.toFixed(0)}`;
 }
 
 export function YieldTable({ data, isLoading, error }: Props) {
@@ -47,9 +54,27 @@ export function YieldTable({ data, isLoading, error }: Props) {
   const toggle = (key: keyof ColumnState) =>
     setCols((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  if (isLoading) return <div className="text-sm text-muted-foreground">Loading rates...</div>;
-  if (error) return <div className="text-sm text-destructive">Failed to load rates.</div>;
-  if (!data?.length) return <div className="text-sm text-muted-foreground">No rates available.</div>;
+  if (isLoading) {
+    return (
+      <div className="text-xs uppercase tracking-widest py-8" style={{ color: "var(--muted-foreground)" }}>
+        ⟳ fetching rates...
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="text-xs uppercase tracking-widest py-4" style={{ color: "var(--destructive)" }}>
+        ✕ failed to load rates
+      </div>
+    );
+  }
+  if (!data?.length) {
+    return (
+      <div className="text-xs uppercase tracking-widest py-4" style={{ color: "var(--muted-foreground)" }}>
+        — no rates available
+      </div>
+    );
+  }
 
   const sorted = [...data]
     .filter((r) => isFinite(r.supplyApy) && isFinite(r.borrowApy))
@@ -59,73 +84,93 @@ export function YieldTable({ data, isLoading, error }: Props) {
     <div className="space-y-3">
       {/* Column toggles */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground font-medium w-16 shrink-0">Columns</span>
-        <ColToggle label="Vault" active={cols.vault} onClick={() => toggle("vault")} />
-        <ColToggle label="Curator" active={cols.curator} onClick={() => toggle("curator")} />
-        <ColToggle label="Deposits" active={cols.deposits} onClick={() => toggle("deposits")} />
-        <ColToggle label="Liquidity" active={cols.liquidity} onClick={() => toggle("liquidity")} />
-        <ColToggle label="Borrow APY" active={cols.borrowApy} onClick={() => toggle("borrowApy")} />
-        <ColToggle label="Utilization" active={cols.utilization} onClick={() => toggle("utilization")} />
+        <span className="text-xs uppercase tracking-widest w-16 shrink-0" style={{ color: "var(--muted-foreground)" }}>
+          Columns
+        </span>
+        <ColToggle label="Vault"       active={cols.vault}        onClick={() => toggle("vault")} />
+        <ColToggle label="Curator"     active={cols.curator}      onClick={() => toggle("curator")} />
+        <ColToggle label="Deposits"    active={cols.deposits}     onClick={() => toggle("deposits")} />
+        <ColToggle label="Liquidity"   active={cols.liquidity}    onClick={() => toggle("liquidity")} />
+        <ColToggle label="Borrow APY"  active={cols.borrowApy}    onClick={() => toggle("borrowApy")} />
+        <ColToggle label="Utilization" active={cols.utilization}  onClick={() => toggle("utilization")} />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
+      {/* Table */}
+      <div className="overflow-x-auto" style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)" }}>
+        <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
           <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left font-medium">Protocol</th>
-              <th className="px-4 py-3 text-left font-medium">Chain</th>
-              <th className="px-4 py-3 text-left font-medium">Asset</th>
-              {cols.vault && <th className="px-4 py-3 text-left font-medium">Vault</th>}
-              {cols.curator && <th className="px-4 py-3 text-left font-medium">Curator</th>}
-              <th className="px-4 py-3 text-right font-medium">Supply APY</th>
-              {cols.borrowApy && <th className="px-4 py-3 text-right font-medium">Borrow APY</th>}
-              {cols.deposits && <th className="px-4 py-3 text-right font-medium">Deposits</th>}
-              {cols.liquidity && <th className="px-4 py-3 text-right font-medium">Liquidity</th>}
-              {cols.utilization && <th className="px-4 py-3 text-right font-medium">Utilization</th>}
+            <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--muted)" }}>
+              <Th align="left">Protocol</Th>
+              <Th align="left">Chain</Th>
+              <Th align="left">Asset</Th>
+              {cols.vault      && <Th align="left">Vault</Th>}
+              {cols.curator    && <Th align="left">Curator</Th>}
+              <Th align="right">Supply APY</Th>
+              {cols.borrowApy  && <Th align="right">Borrow APY</Th>}
+              {cols.deposits   && <Th align="right">Deposits</Th>}
+              {cols.liquidity  && <Th align="right">Liquidity</Th>}
+              {cols.utilization && <Th align="right">Utilization</Th>}
             </tr>
           </thead>
           <tbody>
             {sorted.map((rate, i) => {
               const chain = CHAIN_CONFIG[rate.chainId];
               const liquidityUsd = rate.totalSupplyUsd - rate.totalBorrowUsd;
+              const protocolColor = PROTOCOL_COLORS[rate.protocol] ?? "var(--foreground)";
               return (
-                <tr key={i} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium capitalize">{rate.protocol}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                      style={{ backgroundColor: chain?.color ?? "#888" }}
-                    >
-                      {chain?.shortName ?? rate.chainId}
-                    </span>
+                <tr
+                  key={i}
+                  className="yield-row"
+                  style={{ borderBottom: i < sorted.length - 1 ? "1px solid var(--border)" : "none" }}
+                >
+                  <td className="px-4 py-2 font-medium uppercase tracking-wider" style={{ color: protocolColor }}>
+                    {rate.protocol}
                   </td>
-                  <td className="px-4 py-3 font-mono">{rate.asset}</td>
+
+                  <td className="px-4 py-2" style={{ color: chain?.color ?? "var(--muted-foreground)" }}>
+                    {chain?.shortName ?? rate.chainId}
+                  </td>
+
+                  <td className="px-4 py-2 font-medium" style={{ color: "var(--foreground)" }}>
+                    {rate.asset}
+                  </td>
+
                   {cols.vault && (
-                    <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{rate.label}</td>
+                    <td className="px-4 py-2 max-w-[160px] truncate text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      {rate.label}
+                    </td>
                   )}
+
                   {cols.curator && (
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{rate.curator ?? "—"}</td>
+                    <td className="px-4 py-2 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      {rate.curator ?? "—"}
+                    </td>
                   )}
-                  <td className="px-4 py-3 text-right font-medium text-green-600">
+
+                  <td className="px-4 py-2 text-right font-medium apy-glow">
                     {rate.supplyApy.toFixed(2)}%
                   </td>
+
                   {cols.borrowApy && (
-                    <td className="px-4 py-3 text-right text-orange-500">
+                    <td className="px-4 py-2 text-right" style={{ color: "var(--borrow-color)" }}>
                       {rate.borrowApy.toFixed(2)}%
                     </td>
                   )}
+
                   {cols.deposits && (
-                    <td className="px-4 py-3 text-right text-muted-foreground">
-                      ${(rate.totalSupplyUsd / 1e6).toFixed(1)}M
+                    <td className="px-4 py-2 text-right tabular-nums" style={{ color: "var(--muted-foreground)" }}>
+                      {fmt(rate.totalSupplyUsd)}
                     </td>
                   )}
+
                   {cols.liquidity && (
-                    <td className="px-4 py-3 text-right text-muted-foreground">
-                      ${(liquidityUsd / 1e6).toFixed(1)}M
+                    <td className="px-4 py-2 text-right tabular-nums" style={{ color: "var(--muted-foreground)" }}>
+                      {fmt(liquidityUsd)}
                     </td>
                   )}
+
                   {cols.utilization && (
-                    <td className="px-4 py-3 text-right text-muted-foreground">
+                    <td className="px-4 py-2 text-right tabular-nums" style={{ color: "var(--muted-foreground)" }}>
                       {(rate.utilizationRate * 100).toFixed(1)}%
                     </td>
                   )}
@@ -136,5 +181,16 @@ export function YieldTable({ data, isLoading, error }: Props) {
         </table>
       </div>
     </div>
+  );
+}
+
+function Th({ children, align }: { children: React.ReactNode; align: "left" | "right" }) {
+  return (
+    <th
+      className={`px-4 py-2 font-medium uppercase tracking-widest text-${align} text-xs`}
+      style={{ color: "var(--muted-foreground)" }}
+    >
+      {children}
+    </th>
   );
 }
