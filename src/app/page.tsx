@@ -1,4 +1,5 @@
 import { YieldTable } from "@/components/YieldTable";
+import { RateChart } from "@/components/RateChart";
 
 export default function Home() {
   return (
@@ -14,13 +15,19 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Best Rates</h2>
-          <span className="text-xs text-muted-foreground">Auto-refreshes every 60s</span>
-        </div>
+      <main className="mx-auto max-w-7xl px-6 py-8 space-y-10">
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Best Rates</h2>
+            <span className="text-xs text-muted-foreground">Auto-refreshes every 60s</span>
+          </div>
+          <YieldTable />
+        </section>
 
-        <YieldTable />
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold">APY History</h2>
+          <RateChart />
+        </section>
       </main>
     </div>
   );
