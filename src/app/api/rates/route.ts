@@ -12,12 +12,15 @@ export async function GET(req: NextRequest) {
   const chainIds = searchParams.get("chains")?.split(",").map(Number) ?? null;
   const assets = (searchParams.get("assets")?.split(",") ?? DEFAULT_ASSETS) as Stablecoin[];
 
+  const withTimeout = <T>(p: Promise<T>, ms: number): Promise<T> =>
+    Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+
   const results = await Promise.allSettled(
     protocols.flatMap((protocol) => {
       const adapter = protocolAdapters[protocol];
       if (!adapter) return [];
       const chains = chainIds ?? adapter.supportedChains;
-      return chains.map((chainId) => adapter.fetchRates(chainId, assets));
+      return chains.map((chainId) => withTimeout(adapter.fetchRates(chainId, assets), 15_000));
     })
   );
 

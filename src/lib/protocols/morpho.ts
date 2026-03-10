@@ -2,13 +2,18 @@ import { keccak256, encodeAbiParameters, parseAbiParameters } from "viem";
 import { mainnet, base } from "viem/chains";
 import type { Protocol, ProtocolAdapter, Stablecoin, YieldRate } from "@/types";
 
-// Morpho Blue singleton — same address on all supported chains
-const MORPHO_BLUE = "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as const;
+// Morpho Blue address per chain (differs on HyperEVM)
+const MORPHO_BLUE_ADDRESS: Partial<Record<number, `0x${string}`>> = {
+  [mainnet.id]: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  [base.id]:    "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  999:          "0x68e37dE8d93d3496ae143F2E900490f6280C57cD",
+};
 
 // AdaptiveCurveIrm addresses per chain
 const IRM: Partial<Record<number, `0x${string}`>> = {
   [mainnet.id]: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-  [base.id]: "0x46415998764C29aB2a25CbeA6254146D50D22687",
+  [base.id]:    "0x46415998764C29aB2a25CbeA6254146D50D22687",
+  999:          "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483",
 };
 
 const MORPHO_BLUE_ABI = [
@@ -111,6 +116,17 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
     { asset: "USDS", decimals: 18, label: "USDS/wstETH 86%", curator: "SparkDAO",   params: { loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F", collateralToken: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", oracle: "0xc9A9440d1545047b2Ce3624DB425410cF2EAE292", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $2.6M
     { asset: "USDS", decimals: 18, label: "USDS/cbBTC 86%",  curator: "SparkDAO",   params: { loanToken: "0xdC035D45d973E3EC169d2276DDab16f1e407384F", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0xA5AEb90F9f122989fE69Ae6224Ed923A0caF33B4", irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC", lltv: 860000000000000000n } }, // $2.6M
   ],
+  // ── HyperEVM ─────────────────────────────────────────────────────────────────
+  [999]: [
+    // ── USDC markets ───────────────────────────────────────────────────────────
+    { asset: "USDC", decimals: 6, label: "USDC/kHYPE 62.5%",   curator: undefined, params: { loanToken: "0xb88339CB7199b77E23DB6E890353E22632Ba630f", collateralToken: "0xfD739d4e423301CE9385c1fb8850539D657C296D", oracle: "0xe876bfaBaD8D78e5EfDb4AB4bED3a40f1aca8469", irm: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483", lltv: 625000000000000000n } }, // $26.7M
+    { asset: "USDC", decimals: 6, label: "USDC/WHYPE 77%",      curator: undefined, params: { loanToken: "0xb88339CB7199b77E23DB6E890353E22632Ba630f", collateralToken: "0x5555555555555555555555555555555555555555", oracle: "0x194FFF37872BAC3531a41fA5C426090ff84f4f31", irm: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483", lltv: 770000000000000000n } }, // $10.0M
+    { asset: "USDC", decimals: 6, label: "USDC/wstHYPE 77%",    curator: undefined, params: { loanToken: "0xb88339CB7199b77E23DB6E890353E22632Ba630f", collateralToken: "0x94e8396e0869c9F2200760aF0621aFd240E1CF38", oracle: "0xF2cB09EDF4D07b2E867919d2cF5Cac0486F6Eb61", irm: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483", lltv: 770000000000000000n } }, // $8.9M
+    // ── USDT (USD₮0) markets ───────────────────────────────────────────────────
+    { asset: "USDT", decimals: 6, label: "USDT/thBILL 86%",     curator: undefined, params: { loanToken: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb", collateralToken: "0xfDD22Ce6D1F66bc0Ec89b20BF16CcB6670F55A5a", oracle: "0x9F6D252E484F81fA5D5da1AFA6D4f662764eb585", irm: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483", lltv: 860000000000000000n } }, // $1.12M
+    { asset: "USDT", decimals: 6, label: "USDT/kHYPE 77%",      curator: undefined, params: { loanToken: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb", collateralToken: "0xfD739d4e423301CE9385c1fb8850539D657C296D", oracle: "0x559aFCE660127BFA34f7Abc899b4E2163BEfE3Ec", irm: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483", lltv: 770000000000000000n } }, // $580K
+    { asset: "USDT", decimals: 6, label: "USDT/WHYPE 77%",      curator: undefined, params: { loanToken: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb", collateralToken: "0x5555555555555555555555555555555555555555", oracle: "0xb294a499aE25D3829cFFC84A7AA66308695789eD", irm: "0xD4a426F010986dCad727e8dd6eed44cA4A9b7483", lltv: 770000000000000000n } }, // $437K
+  ],
   [base.id]: [
     // ── USDC markets ─────────────────────────────────────────────────────────
     { asset: "USDC", decimals: 6, label: "USDC/cbBTC 86%",  curator: "Gauntlet", params: { loanToken: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", collateralToken: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf", oracle: "0x663BECd10daE6C4A3Dcd89F1d76c1174199639B9", irm: "0x46415998764C29aB2a25CbeA6254146D50D22687", lltv: 860000000000000000n } }, // $1.1B
@@ -124,14 +140,15 @@ const MARKETS: Partial<Record<number, { asset: Stablecoin; decimals: number; par
 
 export const morphoAdapter: ProtocolAdapter = {
   protocol: "morpho" as Protocol,
-  supportedChains: [mainnet.id, base.id],
+  supportedChains: [mainnet.id, base.id, 999],
   supportedAssets: ["USDC", "USDT", "DAI", "USDS"],
 
   async fetchRates(chainId: number, assets: Stablecoin[]): Promise<YieldRate[]> {
     const { getClient } = await import("@/lib/rpc/clients");
     const markets = MARKETS[chainId];
     const irmAddress = IRM[chainId];
-    if (!markets || !irmAddress) return [];
+    const morphoBlue = MORPHO_BLUE_ADDRESS[chainId];
+    if (!markets || !irmAddress || !morphoBlue) return [];
 
     const client = getClient(chainId);
     const results: YieldRate[] = [];
@@ -143,7 +160,7 @@ export const morphoAdapter: ProtocolAdapter = {
         const marketId = computeMarketId(params);
 
         const marketState = await client.readContract({
-          address: MORPHO_BLUE,
+          address: morphoBlue,
           abi: MORPHO_BLUE_ABI,
           functionName: "market",
           args: [marketId],
@@ -173,7 +190,11 @@ export const morphoAdapter: ProtocolAdapter = {
         const totalSupplyUsd = Number(totalSupplyAssets) / scale;
         const totalBorrowUsd = Number(totalBorrowAssets) / scale;
 
-        results.push({ protocol: "morpho", chainId, asset, label, curator, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate, updatedAt: new Date() });
+        // Extract collateral symbol from label format "ASSET/COLLATERAL LLTV%"
+        const collateral = label.split("/")[1]?.split(" ")[0];
+        const exposure = collateral ? [{ symbol: collateral, pct: 100 }] : undefined;
+
+        results.push({ protocol: "morpho", chainId, asset, label, curator, exposure, supplyApy, borrowApy, totalSupplyUsd, totalBorrowUsd, utilizationRate, updatedAt: new Date() });
       } catch {
         // Skip markets that fail
       }

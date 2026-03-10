@@ -21,6 +21,7 @@ type VaultItem = {
     allocation: {
       supplyAssetsUsd: number | null;
       market: {
+        collateralAsset: { symbol: string } | null;
         state: { supplyAssetsUsd: number | null; borrowAssetsUsd: number | null } | null;
       };
     }[];
@@ -29,7 +30,7 @@ type VaultItem = {
 
 export const metamorphoAdapter: ProtocolAdapter = {
   protocol: "metamorpho" as Protocol,
-  supportedChains: [1, 8453, 42161, 10],
+  supportedChains: [1, 8453, 42161, 10, 999],
   supportedAssets: ["USDC", "USDT", "DAI", "USDS"],
 
   async fetchRates(chainId: number, assets: Stablecoin[]): Promise<YieldRate[]> {
@@ -50,6 +51,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
             allocation {
               supplyAssetsUsd
               market {
+                collateralAsset { symbol }
                 state { supplyAssetsUsd borrowAssetsUsd }
               }
             }
@@ -63,6 +65,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(10_000),
     });
 
     const json = await res.json();
@@ -81,13 +84,31 @@ export const metamorphoAdapter: ProtocolAdapter = {
 
       const curator = v.state?.curators?.[0]?.name;
 
+      const allocation = v.state?.allocation ?? [];
+
       // Liquidity = Σ min(vault_allocation_in_market, market_available_liquidity)
-      const liquidityUsd = (v.state?.allocation ?? []).reduce((sum, a) => {
+      const liquidityUsd = allocation.reduce((sum, a) => {
         const vaultAlloc = a.supplyAssetsUsd ?? 0;
         const ms = a.market?.state;
         const marketLiq = ms ? (ms.supplyAssetsUsd ?? 0) - (ms.borrowAssetsUsd ?? 0) : 0;
         return sum + Math.min(vaultAlloc, marketLiq);
       }, 0);
+
+      // Exposure = top 3 collaterals by allocated USD, with % of total vault TVL
+      const collateralUsd = new Map<string, number>();
+      for (const a of allocation) {
+        const symbol = a.market?.collateralAsset?.symbol;
+        if (!symbol) continue; // skip idle markets
+        collateralUsd.set(symbol, (collateralUsd.get(symbol) ?? 0) + (a.supplyAssetsUsd ?? 0));
+      }
+      const totalAllocated = [...collateralUsd.values()].reduce((s, v) => s + v, 0);
+      const exposure = totalAllocated > 0
+        ? [...collateralUsd.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .map(([symbol, usd]) => ({ symbol, pct: Math.round((usd / totalAllocated) * 100) }))
+            .filter((e) => e.pct > 0)
+            .slice(0, 3)
+        : undefined;
 
       results.push({
         protocol: "metamorpho" as Protocol,
@@ -95,6 +116,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
         asset,
         label: v.name,
         curator,
+        exposure: exposure && exposure.length > 0 ? exposure : undefined,
         supplyApy: netApy,
         borrowApy: 0,
         totalSupplyUsd: tvl,

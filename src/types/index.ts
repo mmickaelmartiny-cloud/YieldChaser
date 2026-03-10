@@ -8,6 +8,7 @@ export interface YieldRate {
   asset: Stablecoin;
   label: string;          // vault/market name (e.g. "eUSDC-80", "USDC/wstETH 86%")
   curator?: string;       // MetaMorpho vault / risk curator (Morpho only)
+  exposure?: { symbol: string; pct: number }[]; // top collaterals sorted by allocation %
   supplyApy: number;      // annual percentage yield (e.g. 0.05 = 5%)
   borrowApy: number;
   totalSupplyUsd: number;
