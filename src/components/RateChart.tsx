@@ -40,9 +40,10 @@ function formatTime(ms: number, period: Period) {
 
 interface Props {
   rates: YieldRate[] | undefined;
+  selectedVault?: YieldRate | null;
 }
 
-export function RateChart({ rates }: Props) {
+export function RateChart({ rates, selectedVault }: Props) {
   const [asset, setAsset] = useState<Stablecoin>("USDC");
   const [period, setPeriod] = useState<Period>("7d");
 
@@ -50,7 +51,7 @@ export function RateChart({ rates }: Props) {
   const history = useRateHistory(rates);
 
   // 7d / 30d — Morpho API historical time series
-  const { data: morphoHistory, isLoading: morphoLoading } = useMorphoHistory(period, asset);
+  const { data: morphoHistory, isLoading: morphoLoading } = useMorphoHistory(period, asset, selectedVault);
 
   // ── 24h chart ────────────────────────────────────────────────────────────
   const keys24h = new Set<string>();
@@ -72,7 +73,6 @@ export function RateChart({ rates }: Props) {
   // ── 7d / 30d chart (Morpho vaults) ────────────────────────────────────────
   const vaults = (morphoHistory ?? []).filter((v) => v.asset === asset).slice(0, 10);
 
-  // Build unified time series: collect all unique timestamps, merge per-vault APY
   const allTimestamps = [...new Set(vaults.flatMap((v) => v.data.map((p) => p.x)))].sort();
   const chartDataMorpho = allTimestamps.map((ts) => {
     const point: Record<string, number | string> = { time: formatTime(ts, period) };
@@ -83,9 +83,9 @@ export function RateChart({ rates }: Props) {
     return point;
   });
 
-  // ── shared placeholder ─────────────────────────────────────────────────────
-  const isEmpty =
-    period === "24h" ? chartData24h.length < 2 : morphoLoading ? false : chartDataMorpho.length < 2;
+  // ── state checks ──────────────────────────────────────────────────────────
+  const needsVaultSelection = period !== "24h" && !selectedVault;
+  const isEmpty = period === "24h" ? chartData24h.length < 2 : !morphoLoading && chartDataMorpho.length < 2;
 
   return (
     <div className="space-y-3">
@@ -103,27 +103,41 @@ export function RateChart({ rates }: Props) {
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
-          {PERIODS.map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`col-toggle ${period === p ? "active" : ""}`}
-              style={{ borderRadius: "var(--radius)" }}
-            >
-              {p.toUpperCase()}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          {selectedVault && period !== "24h" && (
+            <span className="text-xs truncate max-w-[220px]" style={{ color: "var(--muted-foreground)" }}>
+              {selectedVault.label}
+            </span>
+          )}
+          <div className="flex gap-2">
+            {PERIODS.map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`col-toggle ${period === p ? "active" : ""}`}
+                style={{ borderRadius: "var(--radius)" }}
+              >
+                {p.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Chart */}
-      {morphoLoading && period !== "24h" ? (
+      {needsVaultSelection ? (
         <div
           className="flex items-center justify-center h-44 text-xs uppercase tracking-widest"
           style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--muted-foreground)" }}
         >
-          ⟳ loading morpho history…
+          ↑ click a morpho vault in the table to see its history
+        </div>
+      ) : morphoLoading && period !== "24h" ? (
+        <div
+          className="flex items-center justify-center h-44 text-xs uppercase tracking-widest"
+          style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--muted-foreground)" }}
+        >
+          ⟳ loading…
         </div>
       ) : isEmpty ? (
         <div
@@ -213,12 +227,6 @@ export function RateChart({ rates }: Props) {
             )}
           </ResponsiveContainer>
         </div>
-      )}
-
-      {period !== "24h" && !morphoLoading && vaults.length > 0 && (
-        <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-          MetaMorpho vaults · {vaults.length} vault{vaults.length > 1 ? "s" : ""} · source: blue-api.morpho.org
-        </p>
       )}
     </div>
   );

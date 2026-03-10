@@ -21,15 +21,22 @@ export interface VaultHistory {
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const period = searchParams.get("period") ?? "7d";
-  const chainIds = searchParams.get("chains")?.split(",").map(Number) ?? [1, 8453, 42161, 10, 999];
+  const address = searchParams.get("address");
+  const chainId = searchParams.get("chainId");
+  const chainIds = chainId ? [Number(chainId)] : [1, 8453, 42161, 10, 999];
   const assets = searchParams.get("assets")?.split(",") ?? ["USDC", "USDT", "DAI", "USDS"];
 
   const { interval, startTimestamp } = periodToOptions(period);
 
+  // Build where clause: specific vault address, or top vaults for assets
+  const whereClause = address && chainId
+    ? `address_in: ["${address}"], chainId_in: [${chainId}]`
+    : `chainId_in: [${chainIds.join(",")}]`;
+
   const query = `{
     vaults(
-      where: { chainId_in: [${chainIds.join(",")}] }
-      first: 100
+      where: { ${whereClause} }
+      first: ${address ? 1 : 100}
       orderBy: TotalAssetsUsd
       orderDirection: Desc
     ) {
@@ -68,7 +75,8 @@ export async function GET(req: NextRequest) {
       .filter((v) => {
         const symbol = v.asset?.symbol ?? "";
         const tvl = v.state?.totalAssetsUsd ?? 0;
-        return assets.includes(symbol) && tvl >= MIN_TVL_USD;
+        // When querying a specific vault by address, skip TVL filter
+        return assets.includes(symbol) && (address ? true : tvl >= MIN_TVL_USD);
       })
       .map((v) => ({
         name: v.name,

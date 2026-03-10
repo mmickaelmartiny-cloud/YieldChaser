@@ -12,6 +12,7 @@ const ASSET_MAP: Partial<Record<string, Stablecoin>> = {
 };
 
 type VaultItem = {
+  address: string;
   name: string;
   asset: { symbol: string } | null;
   state: {
@@ -42,6 +43,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
         orderDirection: Desc
       ) {
         items {
+          address
           name
           asset { symbol }
           state {
@@ -113,6 +115,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
       results.push({
         protocol: "metamorpho" as Protocol,
         chainId,
+        address: v.address,
         asset,
         label: v.name,
         curator,

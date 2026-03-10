@@ -6,9 +6,11 @@ import { YieldTable } from "@/components/YieldTable";
 import { RateChart } from "@/components/RateChart";
 import { FilterBar, defaultFilters } from "@/components/FilterBar";
 import type { FilterState } from "@/components/FilterBar";
+import type { YieldRate } from "@/types";
 
 export function Dashboard() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [selectedVault, setSelectedVault] = useState<YieldRate | null>(null);
   const { data, isLoading, error } = useYieldRates();
 
   const filtered = useMemo(() => {
@@ -29,7 +31,13 @@ export function Dashboard() {
           ── BEST RATES
         </span>
         <FilterBar filters={filters} onChange={setFilters} />
-        <YieldTable data={filtered} isLoading={isLoading} error={error} />
+        <YieldTable
+          data={filtered}
+          isLoading={isLoading}
+          error={error}
+          selectedVault={selectedVault}
+          onSelect={setSelectedVault}
+        />
       </section>
 
       {/* APY History */}
@@ -37,7 +45,10 @@ export function Dashboard() {
         <span className="text-xs uppercase tracking-widest" style={{ color: "var(--muted-foreground)" }}>
           ── APY HISTORY
         </span>
-        <RateChart rates={data?.filter((r) => r.protocol !== "metamorpho")} />
+        <RateChart
+          rates={data?.filter((r) => r.protocol !== "metamorpho")}
+          selectedVault={selectedVault}
+        />
       </section>
     </div>
   );

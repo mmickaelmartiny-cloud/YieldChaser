@@ -6,6 +6,7 @@ export interface YieldRate {
   protocol: Protocol;
   chainId: number;
   asset: Stablecoin;
+  address?: string;       // vault contract address (MetaMorpho only)
   label: string;          // vault/market name (e.g. "eUSDC-80", "USDC/wstETH 86%")
   curator?: string;       // MetaMorpho vault / risk curator (Morpho only)
   exposure?: { symbol: string; pct: number }[]; // top collaterals sorted by allocation %

@@ -18,6 +18,8 @@ interface Props {
   data: YieldRate[] | undefined;
   isLoading?: boolean;
   error?: Error | null;
+  selectedVault?: YieldRate | null;
+  onSelect?: (rate: YieldRate | null) => void;
 }
 
 const PROTOCOL_COLORS: Record<string, string> = {
@@ -157,7 +159,7 @@ function fmt(usd: number) {
   return `$${usd.toFixed(0)}`;
 }
 
-export function YieldTable({ data, isLoading, error }: Props) {
+export function YieldTable({ data, isLoading, error, selectedVault, onSelect }: Props) {
   const [sort, setSort] = useState<{ col: SortCol; dir: "asc" | "desc" }>({ col: "supplyApy", dir: "desc" });
 
   const handleSort = (col: SortCol) =>
@@ -248,11 +250,18 @@ export function YieldTable({ data, isLoading, error }: Props) {
               const utilization = rate.totalSupplyUsd > 0 ? (rate.totalSupplyUsd - liquidityUsd) / rate.totalSupplyUsd : 0;
               const risk = computeRisk(rate, utilization);
               const protocolColor = PROTOCOL_COLORS[rate.protocol] ?? "var(--foreground)";
+              const isSelectable = rate.protocol === "metamorpho" && !!rate.address;
+              const isSelected = isSelectable && selectedVault?.address === rate.address && selectedVault?.chainId === rate.chainId;
               return (
                 <tr
                   key={i}
                   className="yield-row"
-                  style={{ borderBottom: i < sorted.length - 1 ? "1px solid var(--border)" : "none" }}
+                  style={{
+                    borderBottom: i < sorted.length - 1 ? "1px solid var(--border)" : "none",
+                    cursor: isSelectable ? "pointer" : undefined,
+                    background: isSelected ? "rgba(77, 138, 255, 0.08)" : undefined,
+                  }}
+                  onClick={isSelectable ? () => onSelect?.(isSelected ? null : rate) : undefined}
                 >
                   <td className="px-4 py-2 font-medium uppercase tracking-wider" style={{ color: protocolColor }}>
                     {PROTOCOL_LABELS[rate.protocol] ?? rate.protocol}
