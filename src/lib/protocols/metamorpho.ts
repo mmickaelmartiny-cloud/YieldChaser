@@ -19,6 +19,7 @@ type VaultItem = {
     totalAssetsUsd: number;
     netApy: number;
     curators: { name: string }[];
+    rewards: { supplyApr: number | null; asset: { symbol: string } | null }[];
     allocation: {
       supplyAssetsUsd: number | null;
       market: {
@@ -37,7 +38,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
   async fetchRates(chainId: number, assets: Stablecoin[]): Promise<YieldRate[]> {
     const query = `{
       vaults(
-        where: { chainId_in: [${chainId}] }
+        where: { chainId_in: [${chainId}], whitelisted: true }
         first: 100
         orderBy: TotalAssetsUsd
         orderDirection: Desc
@@ -50,6 +51,7 @@ export const metamorphoAdapter: ProtocolAdapter = {
             totalAssetsUsd
             netApy
             curators { name }
+            rewards { supplyApr asset { symbol } }
             allocation {
               supplyAssetsUsd
               market {
@@ -81,7 +83,9 @@ export const metamorphoAdapter: ProtocolAdapter = {
       const tvl = v.state?.totalAssetsUsd ?? 0;
       if (tvl < MIN_TVL_USD) continue;
 
-      const netApy = (v.state?.netApy ?? 0) * 100;
+      const baseApy = (v.state?.netApy ?? 0) * 100;
+      const rewardsApr = (v.state?.rewards ?? []).reduce((sum, r) => sum + ((r.supplyApr ?? 0) * 100), 0);
+      const netApy = baseApy + rewardsApr;
       if (netApy > MAX_APY || netApy < 0) continue;
 
       const curator = v.state?.curators?.[0]?.name;
